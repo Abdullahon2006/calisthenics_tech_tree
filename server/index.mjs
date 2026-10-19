@@ -1,6 +1,7 @@
 // Personal server: HTTPS (self-signed), password login with session cookies,
 // and a JSON file for data. `node server/index.mjs` = dev (Vite inside),
 // `node server/index.mjs --prod` = serves the built app from dist/.
+import http from 'node:http';
 import https from 'node:https';
 import os from 'node:os';
 import fs from 'node:fs';
@@ -19,6 +20,8 @@ const CERT_FILE = path.join(DATA_DIR, 'cert.json');
 const PORT = Number(process.env.PORT) || 3443;
 const HOST = process.env.HOST || '0.0.0.0';
 const PROD = process.argv.includes('--prod');
+const PLAIN = process.argv.includes('--http'); // plain HTTP, like the first version (no certificate)
+const ANY_NETWORK = process.argv.includes('--any-network'); // skip the private-address check
 const COOKIE = 'tt_session';
 const SESSION_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -90,7 +93,10 @@ const app = express();
 app.disable('x-powered-by');
 app.set('trust proxy', false);
 app.use((req, res, next) => {
-  if (!isPrivateIp(req.socket.remoteAddress)) return res.status(403).send('Local network only.');
+  if (!ANY_NETWORK && !isPrivateIp(req.socket.remoteAddress)) {
+    console.log(`Blocked request from ${req.socket.remoteAddress} (not a private address). Use --any-network to allow it.`);
+    return res.status(403).send('Local network only.');
+  }
   res.set({ 'X-Content-Type-Options': 'nosniff', 'X-Frame-Options': 'DENY', 'Referrer-Policy': 'no-referrer', 'Cache-Control': req.path.startsWith('/api') ? 'no-store' : 'no-cache' });
   next();
 });
@@ -106,7 +112,7 @@ app.post('/api/login', loginLimiter, (req, res) => {
   if (!ok) return res.status(401).json({ error: 'Wrong password.' });
   const token = crypto.randomBytes(32).toString('hex');
   sessions.set(token, Date.now() + SESSION_MS);
-  res.cookie(COOKIE, token, { httpOnly: true, secure: true, sameSite: 'strict', maxAge: SESSION_MS, path: '/' });
+  res.cookie(COOKIE, token, { httpOnly: true, secure: !PLAIN, sameSite: 'strict', maxAge: SESSION_MS, path: '/' });
   res.json({ ok: true });
 });
 
@@ -153,8 +159,16 @@ app.put('/api/data', requireAuth, (req, res) => {
 });
 app.use('/api', (_req, res) => res.status(404).json({ error: 'Not found.' }));
 
-const { key, cert } = await loadCert();
-const server = https.createServer({ key, cert }, app);
+let server;
+if (PLAIN) {
+  server = http.createServer(app);
+} else {
+  const { key, cert } = await loadCert();
+  server = https.createServer({ key, cert }, app);
+  // Shows up when a browser (often Safari) abandons the connection over the certificate.
+  server.on('tlsClientError', (error, socket) => console.log(`TLS problem from ${socket.remoteAddress}: ${error.code || error.message}`));
+}
+const scheme = PLAIN ? 'http' : 'https';
 
 if (PROD) {
   const dist = path.join(ROOT, 'dist');
@@ -169,8 +183,8 @@ if (PROD) {
 
 server.listen(PORT, HOST, () => {
   console.log(`\nTech Tree running (${PROD ? 'production' : 'dev'}):`);
-  console.log(`  https://localhost:${PORT}`);
-  lanIps().forEach((ip) => console.log(`  https://${ip}:${PORT}`));
+  console.log(`  ${scheme}://localhost:${PORT}`);
+  lanIps().forEach((ip) => console.log(`  ${scheme}://${ip}:${PORT}`));
   if (!readJson(AUTH_FILE)) console.log('\nNo password set yet. Run: pnpm set-password');
-  console.log('First visit on each device: accept the certificate warning once.\n');
+  console.log(PLAIN ? 'Plain HTTP mode: the password is sent unencrypted on this network.\n' : 'First visit on each device: accept the certificate warning once.\n');
 });
