@@ -1,0 +1,163 @@
+@import "tailwindcss";
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
+
+/* ---------- Theme tokens ----------
+   Dark is the default. The Tailwind palette (slate, white, black, accent, status
+   colors) is remapped per theme, so existing utility classes follow the theme. */
+:root {
+  --apple-font: "Geist Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --apple-mono: "Geist Mono Variable", ui-monospace, Menlo, monospace;
+  --motion-quick: 140ms cubic-bezier(0.2, 0, 0, 1);
+  --motion-settle: 300ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  --canvas: #0E0F12;
+  --surface: #15171B;
+  --surface-raised: #1C1F24;
+  --line: rgba(255, 255, 255, 0.08);
+  --ink: #ECEEF1;
+  --ink-muted: #8E949E;
+  --accent: #5FC4B0;
+  --on-accent: #0B1512;
+  --glass: rgba(21, 23, 27, 0.82);
+  --shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  --scroll: rgba(255, 255, 255, 0.16);
+  color-scheme: dark;
+
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-slate-50: #F4F5F6; --color-slate-100: #E8EAED; --color-slate-200: #D3D6DB;
+  --color-slate-300: #B3B8C0; --color-slate-400: #8E949E; --color-slate-500: #6C727C;
+  --color-slate-600: #4B515A; --color-slate-700: #343A42; --color-slate-800: #23272D;
+  --color-slate-900: #181B20; --color-slate-950: #0E0F12;
+  /* One accent: the old yellow/amber utilities now render as the accent. */
+  --color-yellow-50: #E6F7F3; --color-yellow-100: #CFF0E8; --color-yellow-200: #9BE0D1;
+  --color-yellow-300: #5FC4B0; --color-yellow-400: #49AD9A; --color-yellow-500: #35917F;
+  --color-amber-200: #9BE0D1; --color-amber-300: #7ACFBD; --color-amber-400: #5FC4B0; --color-amber-500: #49AD9A;
+}
+
+html[data-theme="light"] {
+  --canvas: #F5F6F7;
+  --surface: #FFFFFF;
+  --surface-raised: #EEF0F2;
+  --line: rgba(20, 23, 26, 0.1);
+  --ink: #14171A;
+  --ink-muted: #5E6670;
+  --accent: #1B7A6C;
+  --on-accent: #FFFFFF;
+  --glass: rgba(255, 255, 255, 0.82);
+  --shadow: 0 10px 28px rgba(20, 23, 26, 0.1);
+  --scroll: rgba(20, 23, 26, 0.18);
+  color-scheme: light;
+
+  /* white/black swap so text-white, bg-white/8, bg-black/40 etc. invert cleanly */
+  --color-white: #14171A;
+  --color-black: #F5F6F7;
+  --color-slate-50: #14171A; --color-slate-100: #1B1F24; --color-slate-200: #272C33;
+  --color-slate-300: #3A414A; --color-slate-400: #5A626D; --color-slate-500: #6F7782;
+  --color-slate-600: #98A0AA; --color-slate-700: #C9CED5; --color-slate-800: #E3E6EA;
+  --color-slate-900: #EEF0F2; --color-slate-950: #F5F6F7;
+  --color-yellow-50: #0F5E52; --color-yellow-100: #14695C; --color-yellow-200: #25907F;
+  --color-yellow-300: #1B7A6C; --color-yellow-400: #25907F; --color-yellow-500: #2FA391;
+  --color-amber-200: #25907F; --color-amber-300: #1B7A6C; --color-amber-400: #1B7A6C; --color-amber-500: #14695C;
+  --color-blue-300: #1D4ED8; --color-blue-400: #2563EB;
+  --color-emerald-300: #047857; --color-emerald-400: #059669;
+  --color-rose-200: #9F1239; --color-rose-300: #BE123C; --color-rose-400: #E11D48;
+}
+
+body {
+  font-family: var(--apple-font);
+  font-feature-settings: "tnum" 1, "cv11" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  touch-action: pan-x pan-y pinch-zoom;
+  background-color: var(--canvas);
+  color: var(--ink);
+}
+.font-mono { font-family: var(--apple-mono); }
+
+/* ---------- Surfaces ---------- */
+.glass-chrome {
+  background: var(--glass);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  border-bottom: 1px solid var(--line);
+}
+.glass-card {
+  background: var(--glass);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+.glass-card-hover {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s, box-shadow 0.2s;
+}
+.glass-card-hover:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklab, var(--ink) 22%, transparent);
+  box-shadow: var(--shadow);
+}
+.glass-pill {
+  background: color-mix(in oklab, var(--ink) 6%, transparent);
+  border: 1px solid var(--line);
+}
+
+.apple-press {
+  transition: transform var(--motion-quick), opacity var(--motion-quick), background-color var(--motion-quick), border-color var(--motion-quick);
+}
+.apple-press:active { transform: scale(0.98) !important; opacity: 0.9; }
+
+.motion-mascot-icon { filter: none; }
+
+.tech-tree-canvas {
+  background-color: var(--canvas);
+  background-image: radial-gradient(color-mix(in oklab, var(--ink) 9%, transparent) 1px, transparent 1px);
+  background-size: 28px 28px;
+  touch-action: none;
+}
+
+.canvas-control {
+  display: inline-flex; width: 2.5rem; height: 2.5rem; align-items: center; justify-content: center;
+  border-radius: 0.6rem; color: var(--ink-muted); cursor: pointer;
+  transition: background-color var(--motion-quick), color var(--motion-quick);
+}
+.canvas-control:hover, .canvas-control:focus-visible {
+  background: color-mix(in oklab, var(--ink) 10%, transparent); color: var(--ink); outline: none;
+}
+.canvas-control:focus-visible { box-shadow: 0 0 0 2px var(--accent); }
+
+.editor-input {
+  width: 100%; border: 1px solid var(--line); border-radius: 0.75rem;
+  background: var(--surface-raised); padding: 0.6rem 0.75rem; color: var(--ink); outline: none;
+  transition: border-color var(--motion-quick), background-color var(--motion-quick);
+}
+.editor-input:focus { border-color: var(--accent); }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.tracking-apple-display { letter-spacing: -0.028em; }
+.tracking-apple-title { letter-spacing: -0.018em; }
+.tracking-apple-caption { letter-spacing: 0.015em; }
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+@keyframes pulseGlow { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.9; } }
+.animate-pulse-glow { animation: pulseGlow 2.4s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important; animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important; scroll-behavior: auto !important;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass-chrome, .glass-card { background: var(--surface); backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
+@media (prefers-contrast: more) {
+  .glass-chrome, .glass-card { border-color: color-mix(in oklab, var(--ink) 40%, transparent); }
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border-radius: 9999px; }
