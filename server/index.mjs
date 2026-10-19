@@ -66,15 +66,21 @@ const lanIps = () => Object.values(os.networkInterfaces()).flat().filter((i) => 
 async function loadCert() {
   const ips = lanIps().sort();
   const saved = readJson(CERT_FILE);
-  if (saved && saved.expires > Date.now() + 30 * 864e5 && JSON.stringify(saved.ips) === JSON.stringify(ips)) return saved;
+  if (saved && saved.v === 2 && saved.expires > Date.now() + 30 * 864e5 && JSON.stringify(saved.ips) === JSON.stringify(ips)) return saved;
   const altNames = [
     { type: 2, value: 'localhost' }, { type: 2, value: os.hostname() },
     { type: 7, ip: '127.0.0.1' }, ...ips.map((ip) => ({ type: 7, ip })),
   ];
   const pems = await selfsigned.generate([{ name: 'commonName', value: 'tech-tree.local' }], {
-    days: 365, keySize: 2048, extensions: [{ name: 'subjectAltName', altNames }],
+    days: 365, keySize: 2048, algorithm: 'sha256', // Safari rejects SHA-1 certificates outright
+    extensions: [
+      { name: 'basicConstraints', cA: false },
+      { name: 'keyUsage', digitalSignature: true, keyEncipherment: true },
+      { name: 'extKeyUsage', serverAuth: true }, // required by Apple platforms
+      { name: 'subjectAltName', altNames },
+    ],
   });
-  const cert = { key: pems.private, cert: pems.cert, ips, expires: Date.now() + 365 * 864e5 };
+  const cert = { v: 2, key: pems.private, cert: pems.cert, ips, expires: Date.now() + 365 * 864e5 };
   fs.writeFileSync(CERT_FILE, JSON.stringify(cert), { mode: 0o600 });
   return cert;
 }
