@@ -1,4 +1,4 @@
-# Apeiron Tech Tree
+# Calisthenics Tech Tree
 
 Private, local-first calisthenics progression tracker. It runs a React/Vite
 client behind a small Express server with password-protected sessions and
